@@ -8,5 +8,5 @@ const userRouter = Router();
 userRouter.route("/register").post(registerUser)// done
 userRouter.route("/login").post(loginUser)// done
 userRouter.route("/logout").post(verifyJwt,logoutUser)// done
-userRouter.route("/update-details").post(verifyJwt,upload.single("photo"),updateDetails)// done
+userRouter.route("/update_details").post(verifyJwt,upload.single("photo"),updateDetails)// done
 export default userRouter;

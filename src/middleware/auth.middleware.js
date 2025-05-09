@@ -5,7 +5,7 @@ import { User } from "../models/user.model.js";
 const verifyJwt = asyncHandler(async (req, res, next) => {
   // Get the token from cookies or headers
   const token =
-    req.cookies?.accessToken ||
+    req.cookies?.token ||
     req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
@@ -17,13 +17,12 @@ const verifyJwt = asyncHandler(async (req, res, next) => {
   try {
     // Decode the token
     const decodedToken = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-
+    
     // Check the role and find the user in the appropriate model
     let user = await User.findById(decodedToken._id);
 
     // Attach the user and role to the request object
     req.user = user;
-    req.role = decodedToken.role;
 
     next();
   } catch (error) {
