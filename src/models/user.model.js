@@ -3,6 +3,11 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 const userSchema = mongoose.Schema(
   {
+    UserId: {
+      type: String,
+      // required: true,
+      unique: true,
+    },
     fullName: {
       type: String,
       required: true,

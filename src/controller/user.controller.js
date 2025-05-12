@@ -1,3 +1,5 @@
+import mongoose, { isValidObjectId, Schema } from "mongoose";
+import { Task } from "../models/task.model.js";
 import { User } from "../models/user.model.js";
 import { ApiError } from "../utility/Apierror.js";
 import { ApiResponse } from "../utility/ApiResponse.js";
@@ -39,33 +41,35 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   // check if user already exist
-  const existedAdmin = await User.findOne({
+  const existedUser = await User.findOne({
     $or: [{ fullName }, { email }],
   });
   // alredy registered the give error
-  if (existedAdmin) {
-    throw new ApiError(409, "Admin with provided credintial already exist!");
+  if (existedUser) {
+    throw new ApiError(409, "User with provided credintial already exist!");
   }
+  let UserId = 'user-' + Date.now(); // Generate a unique UserId
   // otherwise create entry in database
-  const admin = await User.create({
+  const user = await User.create({
+    UserId,
     fullName,
     email,
     password,
   });
   // check if cretaed sccessfully by search
-  const createdAdmin = await User.findById(admin._id);
+  const createdUser = await User.findById(user._id);
   // if not created
-  if (!createdAdmin) {
+  if (!createdUser) {
     throw new ApiError(
       500,
-      createdAdmin,
-      "somthing went wrong while registring the admin"
+      createdUser,
+      "somthing went wrong while registring the user"
     );
   }
   // if created successfully return some details
   return res
     .status(200)
-    .json(new ApiResponse(201, createdAdmin, "Admin registered successfully"));
+    .json(new ApiResponse(201, createdUser, "user registered successfully"));
 });
 const loginUser = asyncHandler(async (req, res) => {
   // get data from login API request
@@ -111,11 +115,7 @@ const loginUser = asyncHandler(async (req, res) => {
     .cookie("accessToken", accessToken, options)
     .cookie("refreshToken", refreshToken, options)
     .json(
-      new ApiResponse(
-        200,
-        { user, accessToken },
-        "user loggedIn Successfull"
-      )
+      new ApiResponse(200, { user, accessToken }, "user loggedIn Successfull")
     );
 });
 const logoutUser = asyncHandler(async (req, res) => {
@@ -156,7 +156,9 @@ const updateDetails = asyncHandler(async (req, res) => {
     skills,
     rating,
   } = req.body;
-  let accessToken = req.cookies.accessToken || req.header("Authorization")?.replace("Bearer ", "");
+  let accessToken =
+    req.cookies.accessToken ||
+    req.header("Authorization")?.replace("Bearer ", "");
   // console.log(
   //   "backend response",
   //   fullName,
@@ -180,17 +182,17 @@ const updateDetails = asyncHandler(async (req, res) => {
   // Handle photo upload if provided
   let photoUrl = currentUser.photo; // Keep the existing photo if no new photo is uploaded
   if (req.file) {
-      // Upload the file to Cloudinary
- try {
-       const result = await uploadOnCloudinary(req.file.path);
-         photoUrl = result;
-         console.log("Photo URL:", photoUrl);
-         console.log("Photo uploaded to Cloudinary:");
-       // Delete the temporary file after uploading to Cloudinary
-       fs.unlinkSync(req.file.path);
- } catch (error) {
-  throw new ApiError(500, "Failed to upload photo");
- }
+    // Upload the file to Cloudinary
+    try {
+      const result = await uploadOnCloudinary(req.file.path);
+      photoUrl = result;
+      console.log("Photo URL:", photoUrl);
+      console.log("Photo uploaded to Cloudinary:");
+      // Delete the temporary file after uploading to Cloudinary
+      fs.unlinkSync(req.file.path);
+    } catch (error) {
+      throw new ApiError(500, "Failed to upload photo");
+    }
   }
 
   // Update only the provided fields
@@ -215,12 +217,92 @@ const updateDetails = asyncHandler(async (req, res) => {
   if (!user) {
     throw new ApiError(500, "Failed to update user details");
   }
- 
+
   // Return the updated user details
   return res
     .status(200)
     .json(
-      new ApiResponse(200, {user,accessToken}, "User details updated successfully")
+      new ApiResponse(
+        200,
+        { user, accessToken },
+        "User details updated successfully"
+      )
     );
 });
-export { registerUser, loginUser, logoutUser, updateDetails };
+
+const createTask = asyncHandler(async (req, res) => {
+  const {
+    taskTitle,
+    requirements,
+    description,
+    category,
+    budget,
+    deadline,
+    createdBy,
+    status,
+    tags,
+    attachments,
+  } = req.body;
+  const userId = req.user._id;
+
+  const currentUser = await User.findById(userId);
+  if (!currentUser) throw new ApiError(404, "User not found");
+
+  let attachmentUrls = [];
+  if (req.files && req.files.length > 0) {
+    for (const file of req.files) {
+      try {
+        const result = await uploadOnCloudinary(file.path);
+        attachmentUrls.push(result); // use .url if result is a full object
+        fs.unlinkSync(file.path);
+      } catch (error) {
+        throw new ApiError(500, "Failed to upload attachments");
+      }
+    }
+  }
+  let TaskId = `task-${Date.now()}`; // Generate a unique TaskId
+  const task = await Task.create({
+    TaskId,
+    taskTitle,
+    requirements,
+    description,
+    category,
+    budget,
+    deadline,
+    tags,
+    createdBy:  userId,
+    status,
+    attachments: attachmentUrls,
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, task, "Task created successfully"));
+});
+
+const BrowseOpenTasks = asyncHandler(async (req, res) => {
+  const { userId } = req.query;
+  const today = new Date();
+  if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
+    return res.status(400).json(new ApiResponse(400, null, "Invalid or missing userId"));
+  }
+  const userObjectId = new mongoose.Types.ObjectId(userId);
+  const tasks = await Task.find(
+    {
+      status: "open",
+      // createdBy: { $ne: userObjectId }, // Exclude tasks created by the logged-in user
+    }
+  );
+  // .sort({ createdAt: -1 });
+  console.log("tasks", tasks);
+  return res.status(200).json(new ApiResponse(200, tasks, "Task fetched successfully"));
+});
+
+export {
+  registerUser,
+  loginUser,
+  logoutUser,
+  updateDetails,
+  createTask,
+  BrowseOpenTasks,
+};
