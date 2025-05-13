@@ -1,7 +1,7 @@
 import mongoose, { isValidObjectId, Schema } from "mongoose";
 import { Task } from "../models/task.model.js";
 import { User } from "../models/user.model.js";
-import { ApiError } from "../utility/Apierror.js";
+import { ApiError } from "../utility/ApiError.js";
 import { ApiResponse } from "../utility/ApiResponse.js";
 import { asyncHandler } from "../utility/asynchHandler.js";
 import { uploadOnCloudinary } from "../utility/cloudinary.js";
