@@ -7,6 +7,7 @@ import { asyncHandler } from "../utility/asynchHandler.js";
 import { uploadOnCloudinary } from "../utility/cloudinary.js";
 import fs from "fs";
 import { log } from "console";
+import { Conversation } from "../models/Conversation.model.js";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -307,6 +308,69 @@ const BrowseOpenTasks = asyncHandler(async (req, res) => {
       .json(new ApiResponse(500, null, "Failed to fetch tasks: " + error.message)); //Include the error message
   }
 });
+const createConversation = asyncHandler(async (req, res) => {
+  const { participants } = req.body;
+
+  // Check if the participants array is provided and has at least two users
+  if (!participants || participants.length < 2) {
+    return res
+    .status(400)
+    .json(
+      new ApiResponse(400, null, "At least two participants are required")
+    );
+  }
+// check if already exist
+  const existingConversation = await Conversation.findOne({
+    participants: { $all: participants },
+  });
+  if (existingConversation) {
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(200, existingConversation, "Conversation already exists")
+      );
+  }
+  // Create a new conversation
+  const conversation = await Conversation.create({ participants });
+
+  return res
+  .status(201)
+  .json(
+    new ApiResponse(201, conversation, "Conversation created successfully"));
+});
+const getAllConversations = asyncHandler(async (req, res) => {
+ const userId = req.params.userId;
+
+  // Validate userId as ObjectId
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return res
+      .status(400)
+      .json(new ApiResponse(400, null, "Invalid user ID format"));
+  }
+// Fetch all conversations for the user
+  const conversations = await Conversation.find({
+    participants: { $in: [userId] },
+  });
+  
+// Check if conversations exist
+  if (!conversations || conversations.length === 0) {
+    return res
+      .status(404)
+      .json(new ApiResponse(404, null, "No conversations found"));
+  }
+  // Extract conversation Ids from conversations
+  const conversationIds = [];
+   conversations.forEach((conversation) => {
+    conversationIds.push(conversation._id);
+    });
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+    conversationIds,
+      "conversation Ids  fetched successfully"
+    )
+  );
+});
 export {
   registerUser,
   loginUser,
@@ -314,4 +378,6 @@ export {
   updateDetails,
   createTask,
   BrowseOpenTasks,
+  createConversation,
+  getAllConversations
 };
