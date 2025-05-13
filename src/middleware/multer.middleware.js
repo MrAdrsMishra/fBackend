@@ -2,7 +2,7 @@ import multer from "multer";
 import fs from "fs";
 
 // Ensure the temp directory exists
-const tempDir = "./public/temp";
+const tempDir = "../../public/temp";
 if (!fs.existsSync(tempDir)) {
   fs.mkdirSync(tempDir, { recursive: true });
 }
