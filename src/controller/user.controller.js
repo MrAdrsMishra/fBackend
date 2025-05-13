@@ -6,6 +6,7 @@ import { ApiResponse } from "../utility/ApiResponse.js";
 import { asyncHandler } from "../utility/asynchHandler.js";
 import { uploadOnCloudinary } from "../utility/cloudinary.js";
 import fs from "fs";
+import { log } from "console";
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -281,23 +282,31 @@ const createTask = asyncHandler(async (req, res) => {
 });
 
 const BrowseOpenTasks = asyncHandler(async (req, res) => {
+  console.log("BrowseOpenTasks called");
+  // Check if the user is logged in 
   const { userId } = req.query;
-  const today = new Date();
+
   if (!userId || !mongoose.Types.ObjectId.isValid(userId)) {
     return res.status(400).json(new ApiResponse(400, null, "Invalid or missing userId"));
   }
-  const userObjectId = new mongoose.Types.ObjectId(userId);
-  const tasks = await Task.find(
-    {
-      status: "open",
-      // createdBy: { $ne: userObjectId }, // Exclude tasks created by the logged-in user
-    }
-  );
-  // .sort({ createdAt: -1 });
-  console.log("tasks", tasks);
-  return res.status(200).json(new ApiResponse(200, tasks, "Task fetched successfully"));
-});
 
+  try {
+    const userObjectId = new mongoose.Types.ObjectId(userId);
+
+    const tasks = await Task.find({
+      status: "open",
+      createdBy: { $ne: userObjectId }, // Exclude tasks created by the logged-in user
+    }).sort({ createdAt: -1 });
+
+    return res.status(200).json(new ApiResponse(200, tasks, "Tasks fetched successfully"));
+  } catch (error) {
+    // Handle errors properly, log them, and send an appropriate response
+    console.error("Error fetching tasks:", error);
+    return res
+      .status(500)
+      .json(new ApiResponse(500, null, "Failed to fetch tasks: " + error.message)); //Include the error message
+  }
+});
 export {
   registerUser,
   loginUser,
