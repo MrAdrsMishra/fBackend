@@ -6,7 +6,7 @@ const verifyJwt = asyncHandler(async (req, res, next) => {
   // Get the token from cookies or headers
   console.log("here in verifyJwt",req.body)
   const token =
-    req.cookies?.token ||
+    req.cookies?.accessToken ||
     req.header("Authorization")?.replace("Bearer ", "");
 
   if (!token) {
