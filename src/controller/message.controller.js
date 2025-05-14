@@ -5,7 +5,46 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utility/ApiError.js";
 import { ApiResponse } from "../utility/ApiResponse.js";
 import { asyncHandler } from "../utility/asynchHandler.js";
-import { uploadOnCloudinary } from "../utility/cloudinary.js";
+
+const createConversation = asyncHandler(async (req, res) => {
+//   const { senderId } = req.user?._id;
+console.log("reached backend createConversation");
+  const { senderId,recieverId } = req.body;
+  if (!senderId || !recieverId) {
+    return res
+      .status(400)
+      .json(new ApiError(400, "Sender ID and Reciever ID are required"));
+  }
+  // Check if a conversation already exists between the two users
+  const existingConversation = await Conversation.findOne({
+    participants: { $all: [senderId, recieverId] },
+  });
+  if (existingConversation) {
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          201,
+          existingConversation,
+          "Conversation already exists"
+        )
+      );
+  }
+  // Create a new conversation
+  const newConversation = await Conversation.create({
+    participants: [senderId, recieverId],
+  });
+  if (!newConversation) {
+    return res
+      .status(500)
+      .json(new ApiError(500, "Failed to create conversation"));
+  }
+  return res
+    .status(201)
+    .json(
+      new ApiResponse(201, newConversation, "Conversation created successfully")
+    );
+});
 
 const loadAllConversations = asyncHandler(async (req, res) => {
   const userId = req.query.userId;
@@ -48,9 +87,7 @@ const loadOpponentUserDetails = asyncHandler(async (req, res) => {
   }).select("photo fullName updatedAt");
 
   if (!opponentUsers || opponentUsers.length === 0) {
-    return res
-      .status(404)
-      .json(new ApiError(404, "Opponent users not found"));
+    return res.status(404).json(new ApiError(404, "Opponent users not found"));
   }
 
   return res
@@ -68,9 +105,7 @@ const loadMessages = asyncHandler(async (req, res) => {
   const { conversationId, timeStamp, limit = 20 } = req.query;
 
   if (!conversationId || !isValidObjectId(conversationId)) {
-    return res
-      .status(400)
-      .json(new ApiError(400, "Invalid conversation ID"));
+    return res.status(400).json(new ApiError(400, "Invalid conversation ID"));
   }
 
   const query = { conversationId };
@@ -93,9 +128,7 @@ const sendMessage = asyncHandler(async (req, res) => {
   const { content, conversationId, senderId, recieverId } = req.body;
 
   if (!content || !conversationId || !senderId || !recieverId) {
-    return res
-      .status(400)
-      .json(new ApiError(400, "All fields are required"));
+    return res.status(400).json(new ApiError(400, "All fields are required"));
   }
 
   const newMessage = await Message.create({
@@ -110,7 +143,9 @@ const sendMessage = asyncHandler(async (req, res) => {
     .json(new ApiResponse(201, newMessage, "Message sent successfully"));
 });
 export {
-    loadAllConversations,
-    loadOpponentUserDetails,
-    loadMessages
-}
+  loadAllConversations,
+  loadOpponentUserDetails,
+  loadMessages,
+  sendMessage,
+  createConversation,
+};

@@ -107,6 +107,7 @@ const loginUser = asyncHandler(async (req, res) => {
   //   throw new ApiError(409, "somthing went wrong while logging user");
   // }
   // options for preventing change of tokens by frontend
+  console.log("accessToken", accessToken);
   const options = {
     httpOnly: true,
     secure: true,
