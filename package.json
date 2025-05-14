@@ -4,9 +4,14 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
+<<<<<<< HEAD
     "start": "node -r dotenv/config --experimental-json-modules src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon -r dotenv/config --experimental-json-modules src/server.js"
+=======
+   "start": "node src/server.js",
+    "dev": "nodemon src/server.js"
+>>>>>>> main
   },
   "author": "",
   "license": "ISC",
