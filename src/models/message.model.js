@@ -25,5 +25,5 @@ const messageSchema = mongoose.Schema({
         type:Boolean,
         default:false
     },
-},{timeStamp:true});
+},{timestamps:true});
 export const Message = mongoose.model("Message",messageSchema);

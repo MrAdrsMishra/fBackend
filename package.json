@@ -4,14 +4,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-<<<<<<< HEAD
     "start": "node -r dotenv/config --experimental-json-modules src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon -r dotenv/config --experimental-json-modules src/server.js"
-=======
-   "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
->>>>>>> main
   },
   "author": "",
   "license": "ISC",
@@ -27,6 +22,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.14.1",
     "multer": "^1.4.5-lts.2",
-    "nodemon": "^3.1.10"
+    "nodemon": "^3.1.10",
+    "validator": "^13.15.0"
   }
 }

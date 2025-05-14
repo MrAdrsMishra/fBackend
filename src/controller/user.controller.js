@@ -151,85 +151,78 @@ const updateDetails = asyncHandler(async (req, res) => {
     email,
     phone,
     age,
-    photo,
     gender,
     Bio,
     organization,
     skills,
     rating,
   } = req.body;
-  let accessToken =
-    req.cookies.accessToken ||
-    req.header("Authorization")?.replace("Bearer ", "");
-  // console.log(
-  //   "backend response",
-  //   fullName,
-  //   email,
-  //   phone,
-  //   age,
-  //   gender,
-  //   Bio,
-  //   organization,
-  //   skills,
-  //   rating,
-  //   photo
-  // );
 
-  // Check if the user exists
   const currentUser = await User.findById(req.user?._id);
   if (!currentUser) {
     throw new ApiError(404, "User not found");
   }
 
-  // Handle photo upload if provided
-  let photoUrl = currentUser.photo; // Keep the existing photo if no new photo is uploaded
+  // Validate email and phone
+  if (email && !validator.isEmail(email)) {
+    throw new ApiError(400, "Invalid email format");
+  }
+
+  if (phone && !/^[0-9]{10}$/.test(phone)) {
+    throw new ApiError(400, "Invalid phone number format");
+  }
+
+  // Handle photo upload
+  let photoUrl = currentUser.photo;
   if (req.file) {
-    // Upload the file to Cloudinary
     try {
       const result = await uploadOnCloudinary(req.file.path);
       photoUrl = result;
-      console.log("Photo URL:", photoUrl);
-      console.log("Photo uploaded to Cloudinary:");
-      // Delete the temporary file after uploading to Cloudinary
-      fs.unlinkSync(req.file.path);
+      console.log("Photo uploaded successfully:", photoUrl);
+
+      // Safe file deletion
+      if (fs.existsSync(req.file.path)) {
+        fs.unlinkSync(req.file.path);
+      }
     } catch (error) {
-      throw new ApiError(500, "Failed to upload photo");
+      throw new ApiError(500, "Photo upload failed");
     }
   }
 
-  // Update only the provided fields
-  const updatedFields = {};
-  if (fullName) updatedFields.fullName = fullName;
-  if (email) updatedFields.email = email;
-  if (phone) updatedFields.phone = phone;
-  if (age) updatedFields.age = age;
-  if (gender) updatedFields.gender = gender;
-  if (Bio) updatedFields.Bio = Bio;
-  if (organization) updatedFields.organization = organization;
-  if (skills) updatedFields.skills = skills;
-  if (rating) updatedFields.rating = rating;
-  if (photoUrl) updatedFields.photo = photoUrl;
+  // Whitelist and dynamically update fields
+  const allowedFields = {
+    fullName,
+    email,
+    phone,
+    age,
+    gender,
+    Bio,
+    organization,
+    skills,
+    rating,
+    photo: photoUrl,
+  };
 
-  // Update the user in the database
-  const user = await User.findByIdAndUpdate(
+  const updatedFields = {};
+  for (const [key, value] of Object.entries(allowedFields)) {
+    if (value !== undefined) {
+      updatedFields[key] = value;
+    }
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
     req.user._id,
     { $set: updatedFields },
-    { new: true } // Return the updated document and validate the fields
+    { new: true, runValidators: true }
   );
-  if (!user) {
+
+  if (!updatedUser) {
     throw new ApiError(500, "Failed to update user details");
   }
 
-  // Return the updated user details
-  return res
-    .status(200)
-    .json(
-      new ApiResponse(
-        200,
-        { user, accessToken },
-        "User details updated successfully"
-      )
-    );
+  return res.status(200).json(
+    new ApiResponse(200, { user: updatedUser }, "User details updated successfully")
+  );
 });
 const createTask = asyncHandler(async (req, res) => {
   const {
