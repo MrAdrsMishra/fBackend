@@ -231,7 +231,6 @@ const updateDetails = asyncHandler(async (req, res) => {
       )
     );
 });
-
 const createTask = asyncHandler(async (req, res) => {
   const {
     taskTitle,
