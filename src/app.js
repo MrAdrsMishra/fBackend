@@ -33,5 +33,9 @@ app.use(cookieParser())
 // starting of any api
 import userRouter from './routes/user.routes.js'
 import { link }from 'fs';
+import messageRouter from './routes/message.routes.js';
+import taskRouter from './routes/task.routes.js';
 app.use("/api/v1/users",userRouter)
+app.use("/api/v1/tasks",taskRouter)
+app.use("/api/v1/messages_route",messageRouter)
 export {app}

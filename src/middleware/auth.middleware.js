@@ -4,11 +4,10 @@ import { User } from "../models/user.model.js";
 
 const verifyJwt = asyncHandler(async (req, res, next) => {
   // Get the token from cookies or headers
-  console.log("here in verifyJwt",req.body)
   const token =
     req.cookies?.accessToken ||
     req.header("Authorization")?.replace("Bearer ", "");
-
+console.log("Token from request:", token);
   if (!token) {
     return res
       .status(401)

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import {verifyJwt} from "../middleware/auth.middleware.js";
+import verifyJwt from "../middleware/auth.middleware.js";
 import {
   createConversation,
   loadAllConversations,
@@ -9,7 +9,7 @@ import {
 } from "../controller/message.controller.js";
 
 const messageRouter = Router();
-messageRouter.route("/create_conversation").post( createConversation);
+messageRouter.route("/create-conversation").post( createConversation);
 messageRouter
   .route("/get-all-conversations")
   .get(verifyJwt, loadAllConversations);

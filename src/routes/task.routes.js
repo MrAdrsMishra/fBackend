@@ -1,0 +1,15 @@
+import { Router } from "express";
+import verifyJwt from "../middleware/auth.middleware.js";
+import {
+    BrowseOpenTasks,
+    createTask,
+} from "../controller/task.controller.js";
+import { upload } from "../middleware/multer.middleware.js";
+const taskRouter = Router();
+taskRouter.route("/create-task").post(
+    verifyJwt,
+    upload.array("attachments"),
+    createTask
+);
+taskRouter.route("/browse-task").get(BrowseOpenTasks);
+export default taskRouter;
