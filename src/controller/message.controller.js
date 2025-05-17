@@ -5,17 +5,16 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utility/ApiError.js";
 import { ApiResponse } from "../utility/ApiResponse.js";
 import { asyncHandler } from "../utility/asynchHandler.js";
-
 // ✅ Create Conversation
 const createConversation = asyncHandler(async (req, res) => {
-  const { senderId,recieverId } = req.body;
+  const { senderId, recieverId } = req.body;
 
   // console.log("Reached backend createConversation senderId:", senderId);
 
   if (!senderId || !recieverId) {
-    return res.status(400).json(
-      new ApiError(400, "Sender ID and Receiver ID are required")
-    );
+    return res
+      .status(400)
+      .json(new ApiError(400, "Sender ID and Receiver ID are required"));
   }
 
   // Check if conversation already exists
@@ -24,17 +23,20 @@ const createConversation = asyncHandler(async (req, res) => {
   });
 
   if (existingConversation) {
-    return res.status(200).json(
-      new ApiResponse(
-        200,
-        existingConversation,
-        "Conversation already exists"
-      )
-    );
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          200,
+          existingConversation,
+          "Conversation already exists"
+        )
+      );
   }
 
   // Create new conversation
   const newConversation = await Conversation.create({
+    sender: senderId,
     participants: [senderId, recieverId],
   });
 
@@ -43,34 +45,30 @@ const createConversation = asyncHandler(async (req, res) => {
       .status(500)
       .json(new ApiError(500, "Failed to create conversation"));
   }
-//  console.log("New conversation created:", newConversation);
-  return res.status(201).json(
-    new ApiResponse(
-      201,
-      newConversation,
-      "Conversation created successfully"
-    )
-  );
+  //  console.log("New conversation created:", newConversation);
+  return res
+    .status(201)
+    .json(
+      new ApiResponse(201, newConversation, "Conversation created successfully")
+    );
 });
 
 // ✅ Load All Conversations
 const loadAllConversations = asyncHandler(async (req, res) => {
-  const {userId} = req.query;
-  console.log("Reached backend loadAllConversations userId:", userId);
+  const { userId } = req.query;
+  // console.log("Reached backend loadAllConversations userId:", userId);
   if (!userId || !isValidObjectId(userId)) {
     return res
       .status(400)
       .json(new ApiError(400, "Invalid or missing user ID"));
   }
+  const senderObjectId = new mongoose.Types.ObjectId(userId);
   // Find conversations for the user
-  const conversations = await Conversation.find({
-    participants: userId,
-  });
-
+  console.log("sendeObjectId:", senderObjectId);
+  const conversations = await Conversation.find({sender: senderObjectId});
+  // console.log("Conversations found:", conversations);
   if (!conversations || conversations.length === 0) {
-    return res
-      .status(404)
-      .json(new ApiError(404, "No conversations found"));
+    return res.status(404).json(new ApiError(404, "No conversations found"));
   }
 
   const conversationData = conversations.map((conversation) => {
@@ -80,43 +78,43 @@ const loadAllConversations = asyncHandler(async (req, res) => {
 
     return {
       _id: conversation._id,
-      participants: conversation.participants,
       receiverId,
+      lastMessage: conversation.lastMessage,
     };
   });
 
-  return res.status(200).json(
-    new ApiResponse(200, conversationData, "Conversations loaded")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, conversationData, "Conversations loaded"));
 });
 
 // ✅ Load Opponent Details
-const loadOpponentUserDetails = asyncHandler(async (req, res) => {
-  const { opponentUserIds } = req.body;
-
-  if (!Array.isArray(opponentUserIds) || opponentUserIds.length === 0) {
+const loadRecieverDetails = asyncHandler(async (req, res) => {
+ const { recieverIds } = req.body;
+console.log("Reached backend loadRecieverDetails receiverIds:", req.body);
+  if (!recieverIds || !Array.isArray(recieverIds) || recieverIds.length === 0) {
     return res
       .status(400)
       .json(new ApiError(400, "Opponent user IDs not provided"));
   }
 
   const opponentUsers = await User.find({
-    _id: { $in: opponentUserIds },
-  }).select("photo fullName updatedAt userType");
+    _id: { $in: recieverIds },
+  }).select("_id photo fullName updatedAt");
 
   if (!opponentUsers || opponentUsers.length === 0) {
-    return res
-      .status(404)
-      .json(new ApiError(404, "Opponent users not found"));
+    return res.status(404).json(new ApiError(404, "Opponent users not found"));
   }
 
-  return res.status(200).json(
-    new ApiResponse(
-      200,
-      opponentUsers,
-      "Opponent user details loaded successfully"
-    )
-  );
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        opponentUsers,
+        "Opponent user details loaded successfully"
+      )
+    );
 });
 
 // ✅ Load Messages
@@ -140,9 +138,9 @@ const loadMessages = asyncHandler(async (req, res) => {
     .limit(Number(limit))
     .lean();
 
-  return res.status(200).json(
-    new ApiResponse(200, messages.reverse(), "Messages loaded")
-  );
+  return res
+    .status(200)
+    .json(new ApiResponse(200, messages.reverse(), "Messages loaded"));
 });
 
 // ✅ Send Message
@@ -150,9 +148,7 @@ const sendMessage = asyncHandler(async (req, res) => {
   const { content, conversationId, senderId, receiverId } = req.body;
 
   if (!content || !conversationId || !senderId || !receiverId) {
-    return res
-      .status(400)
-      .json(new ApiError(400, "All fields are required"));
+    return res.status(400).json(new ApiError(400, "All fields are required"));
   }
 
   const newMessage = await Message.create({
@@ -170,7 +166,7 @@ const sendMessage = asyncHandler(async (req, res) => {
 export {
   createConversation,
   loadAllConversations,
-  loadOpponentUserDetails,
+  loadRecieverDetails,
   loadMessages,
   sendMessage,
 };

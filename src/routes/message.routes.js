@@ -4,18 +4,14 @@ import {
   createConversation,
   loadAllConversations,
   loadMessages,
-  loadOpponentUserDetails,
+  loadRecieverDetails,
   sendMessage,
 } from "../controller/message.controller.js";
 
 const messageRouter = Router();
 messageRouter.route("/create-conversation").post( createConversation);
-messageRouter
-  .route("/get-all-conversations")
-  .get(verifyJwt, loadAllConversations);
-messageRouter.route("/get-messages").get(verifyJwt, loadMessages);
-messageRouter
-  .route("/get-other-user-details")
-  .post(verifyJwt, loadOpponentUserDetails);
-messageRouter.route("/send-message").post(verifyJwt, sendMessage);
+messageRouter.route("/get-all-conversations").get( loadAllConversations);
+messageRouter.route("/get-all-reciever-details").get( loadRecieverDetails);
+messageRouter.route("/get-messages").get( loadMessages);
+messageRouter.route("/send-message").post(sendMessage);
 export default messageRouter;
