@@ -4,6 +4,7 @@ import { asyncHandler } from "../utility/asynchHandler.js";
 import { uploadOnCloudinary } from "../utility/cloudinary.js"
 import { Task } from "../models/task.model.js";
 import mongoose from "mongoose";
+import { User } from "../models/user.model.js";
 const createTask = asyncHandler(async (req, res) => {
   const {
     taskTitle,
