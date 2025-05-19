@@ -5,7 +5,7 @@ import dotenv from 'dotenv'
 dotenv.config({  
    path:"./.env",
    origin:[
-      "https://freelancer-backend.vercel.app/"
+      "https://freelancer-backend.vercel.app"
    ]
 })
 import path from 'path'
