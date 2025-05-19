@@ -4,9 +4,6 @@ import cors from "cors"
 import dotenv from 'dotenv'
 dotenv.config({  
    path:"./.env",
-   origin:[
-      "https://freelancer-backend.vercel.app"
-   ]
 })
 import path from 'path'
 import { fileURLToPath } from 'url'
