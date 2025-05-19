@@ -2,10 +2,6 @@ import mongoose from "mongoose";
 import { type } from "os";
 
 const taskSchema = new mongoose.Schema({
-  TaskId: {
-    type: String,
-    unique: true
-  },
   taskTitle: {
     type: String,
     required: true
