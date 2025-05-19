@@ -29,9 +29,11 @@ app.use(express.urlencoded({
 app.use("/accessstatic",express.static(path.join(__dirname,'public')))
 // for cookies handling
 app.use(cookieParser())
+app.use(cors({
   origin: process.env.CORS_ORIGIN?.split(','),
   credentials: true
-}));
+}))
+ 
 app.use(express.json({ limit: "16kb" }));
 app.use(express.urlencoded({ extended: true, limit: "16kb" }));
 app.use("/accessstatic", express.static(path.join(__dirname, 'public')));
