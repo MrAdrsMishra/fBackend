@@ -47,7 +47,9 @@ import taskRouter from './routes/task.routes.js';
 app.use("/api/v1/users", userRouter);
 app.use("/api/v1/tasks", taskRouter);
 app.use("/api/v1/messages_route", messageRouter);
-
+app.get('/',(req,res)=>{
+   res.send("hello")
+})
 // Export the app for Vercel
 export { app };
 export default app; // <-- This line is crucial for Vercel to auto-deploy
