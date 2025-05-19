@@ -13,7 +13,7 @@ const app = express();
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // cors config
 app.use(cors({
-   origin:process.env.CORS_ORIGIN,
+   origin:process.env.CORS_ORIGIN || '*',
    credentials:true
 }))
 // for limit of data transfer
