@@ -64,21 +64,21 @@ const loadAllConversations = asyncHandler(async (req, res) => {
   }
   const senderObjectId = new mongoose.Types.ObjectId(userId);
   // Find conversations for the user
-  console.log("sendeObjectId:", senderObjectId);
-  const conversations = await Conversation.find({sender: senderObjectId});
+  // console.log("sendeObjectId:", senderObjectId);
+  const conversations = await Conversation.find({ sender: senderObjectId });
   // console.log("Conversations found:", conversations);
   if (!conversations || conversations.length === 0) {
     return res.status(404).json(new ApiError(404, "No conversations found"));
   }
 
   const conversationData = conversations.map((conversation) => {
-    const receiverId = conversation.participants.find(
+    const recieverId = conversation.participants.find(
       (id) => id.toString() !== userId
     );
 
     return {
       _id: conversation._id,
-      receiverId,
+      recieverId,
       lastMessage: conversation.lastMessage,
     };
   });
@@ -90,8 +90,7 @@ const loadAllConversations = asyncHandler(async (req, res) => {
 
 // ✅ Load Opponent Details
 const loadRecieverDetails = asyncHandler(async (req, res) => {
- const { recieverIds } = req.body;
-console.log("Reached backend loadRecieverDetails receiverIds:", req.body);
+  const { recieverIds } = req.body;
   if (!recieverIds || !Array.isArray(recieverIds) || recieverIds.length === 0) {
     return res
       .status(400)
@@ -101,8 +100,7 @@ console.log("Reached backend loadRecieverDetails receiverIds:", req.body);
   const opponentUsers = await User.find({
     _id: { $in: recieverIds },
   }).select("_id photo fullName updatedAt");
-
-  if (!opponentUsers || opponentUsers.length === 0) {
+   if (!opponentUsers || opponentUsers.length === 0) {
     return res.status(404).json(new ApiError(404, "Opponent users not found"));
   }
 
@@ -119,15 +117,23 @@ console.log("Reached backend loadRecieverDetails receiverIds:", req.body);
 
 // ✅ Load Messages
 const loadMessages = asyncHandler(async (req, res) => {
-  const { conversationId, timeStamp, limit = 20 } = req.query;
+  const { senderId, conversationId, timeStamp, limit } = req.body;
 
-  if (!conversationId || !isValidObjectId(conversationId)) {
+  if (
+    !senderId ||
+    !isValidObjectId(senderId) ||
+    !conversationId ||
+    !isValidObjectId(conversationId)
+  ) {
     return res
       .status(400)
       .json(new ApiError(400, "Invalid or missing conversation ID"));
   }
 
-  const query = { conversation: conversationId };
+  const query = { 
+     conversation: conversationId,
+     sender: senderId 
+    };
 
   if (timeStamp) {
     query.createdAt = { $lt: new Date(timeStamp) };
@@ -137,7 +143,7 @@ const loadMessages = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .limit(Number(limit))
     .lean();
-
+  console.log(messages);
   return res
     .status(200)
     .json(new ApiResponse(200, messages.reverse(), "Messages loaded"));
@@ -145,9 +151,8 @@ const loadMessages = asyncHandler(async (req, res) => {
 
 // ✅ Send Message
 const sendMessage = asyncHandler(async (req, res) => {
-  const { content, conversationId, senderId, receiverId } = req.body;
-
-  if (!content || !conversationId || !senderId || !receiverId) {
+  const { content, conversationId, senderId, recieverId } = req.body;
+  if (!content || !conversationId || !senderId || !recieverId) {
     return res.status(400).json(new ApiError(400, "All fields are required"));
   }
 
@@ -155,7 +160,7 @@ const sendMessage = asyncHandler(async (req, res) => {
     content,
     conversation: conversationId,
     sender: senderId,
-    receiver: receiverId,
+    reciever: recieverId,
   });
 
   return res

@@ -144,7 +144,7 @@ const updateDetails = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid email format");
   }
 
-  if (phone && !/^[0-9]{10}$/.test(phone)) {
+  if (phone && !/^\+91\d{10}$/.test(phone)) {
     throw new ApiError(400, "Invalid phone number format");
   }
 
