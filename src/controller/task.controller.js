@@ -19,7 +19,6 @@ const createTask = asyncHandler(async (req, res) => {
     attachments,
   } = req.body;
   const userId = req.user._id;
-
   const currentUser = await User.findById(userId);
   if (!currentUser) throw new ApiError(404, "User not found");
 
@@ -29,8 +28,8 @@ const createTask = asyncHandler(async (req, res) => {
       try {
         const result = await uploadOnCloudinary(file.path);
         attachmentUrls.push(result); // use .url if result is a full object
-        fs.unlinkSync(file.path);
       } catch (error) {
+        // console.log(error)
         throw new ApiError(500, "Failed to upload attachments");
       }
     }

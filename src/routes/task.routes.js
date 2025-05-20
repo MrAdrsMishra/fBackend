@@ -11,5 +11,6 @@ taskRouter.route("/create-task").post(
     upload.array("attachments"),
     createTask
 );
-taskRouter.route("/browse-task").get(BrowseOpenTasks);
+taskRouter.route("/browse-task").get(BrowseOpenTasks); //http://localhost:3000/api/v1/tasks/browse-task?userId=682b4523bff8040a1fd13f8f
+
 export default taskRouter;

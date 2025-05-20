@@ -65,7 +65,9 @@ const loadAllConversations = asyncHandler(async (req, res) => {
   const senderObjectId = new mongoose.Types.ObjectId(userId);
   // Find conversations for the user
   // console.log("sendeObjectId:", senderObjectId);
-  const conversations = await Conversation.find({ sender: senderObjectId });
+  const conversations = await Conversation.find({ 
+    participants:{$in: [senderObjectId]}
+   });
   // console.log("Conversations found:", conversations);
   if (!conversations || conversations.length === 0) {
     return res.status(404).json(new ApiError(404, "No conversations found"));
@@ -132,7 +134,6 @@ const loadMessages = asyncHandler(async (req, res) => {
 
   const query = { 
      conversation: conversationId,
-     sender: senderId 
     };
 
   if (timeStamp) {
@@ -143,7 +144,7 @@ const loadMessages = asyncHandler(async (req, res) => {
     .sort({ createdAt: -1 })
     .limit(Number(limit))
     .lean();
-  console.log(messages);
+  // console.log(messages);
   return res
     .status(200)
     .json(new ApiResponse(200, messages.reverse(), "Messages loaded"));
