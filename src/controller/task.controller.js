@@ -26,7 +26,7 @@ const createTask = asyncHandler(async (req, res) => {
   if (req.files && req.files.length > 0) {
     for (const file of req.files) {
       try {
-        const result = await uploadOnCloudinary(file.path);
+        const result = await uploadOnCloudinary(file.buffer);
         attachmentUrls.push(result); // use .url if result is a full object
       } catch (error) {
         // console.log(error)
