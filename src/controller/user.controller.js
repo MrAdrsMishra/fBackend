@@ -153,9 +153,6 @@ const updateDetails = asyncHandler(async (req, res) => {
     try {
       const result = await uploadOnCloudinary(req.file.buffer);
       photoUrl = result;
-      if (fs.existsSync(req.file.path)) {
-        fs.unlinkSync(req.file.path);
-      }
     } catch (error) {
       throw new ApiError(500, "Photo upload failed");
     }
