@@ -29,20 +29,22 @@
 // export  { uploadOnCloudinary }  
 import { v2 as cloudinary } from 'cloudinary';
 import streamifier from 'streamifier';
-
-cloudinary.config({ 
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET  
+ cloudinary.config({ 
+    cloud_name: process.env.CLOUDNIRAY_CLOUD_NAME, 
+    api_key: process.env.CLOUDNIRAY_API_KEY,
+    api_secret: process.env.CLOUDNIRAY_API_SECRET  
 });
 
-export const uploadOnCloudinary = (buffer) => {
+export const uploadOnCloudinary = async (buffer) => {
   return new Promise((resolve, reject) => {
     const stream = cloudinary.uploader.upload_stream(
-      { resource_type: "auto" },
+      { resource_type: 'auto' },
       (error, result) => {
-        if (error) return reject(error);
-        resolve(result.secure_url);
+        if (error) {
+          reject(error);
+        } else {
+          resolve(result.secure_url);
+        }
       }
     );
     streamifier.createReadStream(buffer).pipe(stream);

@@ -24,10 +24,13 @@ const createTask = asyncHandler(async (req, res) => {
 
   let attachmentUrls = [];
   if (req.files && req.files.length > 0) {
+    console.log("files in createTask controller: ",req.files)
     for (const file of req.files) {
       try {
-        const result = await uploadOnCloudinary(file.buffer);
-        attachmentUrls.push(result); // use .url if result is a full object
+        
+      const result = await uploadOnCloudinary(file.buffer);
+      console.log("result in task controller: ",result);
+      attachmentUrls.push(result); // use .url if result is a full object
       } catch (error) {
         // console.log(error)
         throw new ApiError(500, "Failed to upload attachments");

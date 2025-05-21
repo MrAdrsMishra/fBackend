@@ -150,6 +150,7 @@ const updateDetails = asyncHandler(async (req, res) => {
 
   let photoUrl = currentUser.photo;
   if (req.file) {
+    console.log(req.file)
     try {
       const result = await uploadOnCloudinary(req.file.buffer);
       photoUrl = result;
